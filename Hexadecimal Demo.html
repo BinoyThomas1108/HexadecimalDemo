@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RGB Color Explorer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 30px;
+            background-color: #f0f0f0;
+        }
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .panel {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            width: 400px;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #555;
+            margin-top: 0;
+        }
+        .slider-container {
+            margin: 15px 0;
+            text-align: left;
+        }
+        .slider-container label {
+            display: inline-block;
+            width: 70px;
+            font-weight: bold;
+        }
+        .slider {
+            width: 200px;
+            vertical-align: middle;
+        }
+        .value-display {
+            display: inline-block;
+            width: 40px;
+            text-align: center;
+            margin-left: 10px;
+        }
+        #hex-display, #manual-hex {
+            font-size: 1.8em;
+            font-weight: bold;
+            margin: 20px 0;
+            letter-spacing: 2px;
+            min-height: 1.8em;
+        }
+        .color-box {
+            width: 200px;
+            height: 200px;
+            border: 2px solid #333;
+            margin: 20px auto;
+            transition: background-color 0.2s;
+        }
+        .control-buttons {
+            margin: 20px 0;
+        }
+        button {
+            padding: 8px 15px;
+            margin: 0 5px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        #counter-speed {
+            width: 100px;
+            margin: 0 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>RGB Color Explorer</h1>
+    
+    <div class="container">
+        <!-- Auto-Counter Panel -->
+        <div class="panel">
+            <h2>Color Spectrum Counter</h2>
+            <div id="hex-display">0x 00 00 00</div>
+            <div class="color-box" id="counter-color-box"></div>
+            <div class="control-buttons">
+                <button id="start-btn">Start</button>
+                <button id="pause-btn">Pause</button>
+                <button id="reset-btn">Reset</button>
+                <br>
+                Speed: <input type="range" id="counter-speed" min="1" max="1000" value="100">
+            </div>
+            <p>Cycling through all 16.7 million colors from black (0x000000) to white (0xFFFFFF)</p>
+        </div>
+        
+        <!-- Manual Control Panel -->
+        <div class="panel">
+            <h2>Manual Color Mixer</h2>
+            <div id="manual-hex">0x 00 00 00</div>
+            <div class="color-box" id="manual-color-box"></div>
+            
+            <div class="slider-container">
+                <label for="manual-red">Red:</label>
+                <input type="range" id="manual-red" class="slider" min="0" max="255" value="0">
+                <span id="manual-red-value" class="value-display">0</span>
+            </div>
+            
+            <div class="slider-container">
+                <label for="manual-green">Green:</label>
+                <input type="range" id="manual-green" class="slider" min="0" max="255" value="0">
+                <span id="manual-green-value" class="value-display">0</span>
+            </div>
+            
+            <div class="slider-container">
+                <label for="manual-blue">Blue:</label>
+                <input type="range" id="manual-blue" class="slider" min="0" max="255" value="0">
+                <span id="manual-blue-value" class="value-display">0</span>
+            </div>
+            
+            <p>Adjust sliders to create any RGB color</p>
+        </div>
+    </div>
+
+    <script>
+        // Auto-Counter Elements
+        const hexDisplay = document.getElementById('hex-display');
+        const counterColorBox = document.getElementById('counter-color-box');
+        const startBtn = document.getElementById('start-btn');
+        const pauseBtn = document.getElementById('pause-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const speedControl = document.getElementById('counter-speed');
+        
+        // Manual Control Elements
+        const manualHex = document.getElementById('manual-hex');
+        const manualColorBox = document.getElementById('manual-color-box');
+        const manualRed = document.getElementById('manual-red');
+        const manualGreen = document.getElementById('manual-green');
+        const manualBlue = document.getElementById('manual-blue');
+        const manualRedValue = document.getElementById('manual-red-value');
+        const manualGreenValue = document.getElementById('manual-green-value');
+        const manualBlueValue = document.getElementById('manual-blue-value');
+        
+        // Auto-Counter Variables
+        let currentNumber = 0;
+        const maxNumber = 16777215; // 0xFFFFFF
+        let timer = null;
+        let isRunning = false;
+        let delay = 100;
+        
+        // Update Auto-Counter Display
+        function updateCounterDisplay() {
+            const hexString = currentNumber.toString(16).toUpperCase().padStart(6, '0');
+            const red = hexString.substring(0, 2);
+            const green = hexString.substring(2, 4);
+            const blue = hexString.substring(4, 6);
+            
+            hexDisplay.textContent = `0x ${red} ${green} ${blue}`;
+            counterColorBox.style.backgroundColor = `#${hexString}`;
+            
+            if (currentNumber < maxNumber) {
+                currentNumber++;
+            } else {
+                currentNumber = 0;
+            }
+        }
+        
+        // Start Auto-Counter
+        function startCounter() {
+            if (!isRunning) {
+                isRunning = true;
+                timer = setInterval(updateCounterDisplay, delay);
+            }
+        }
+        
+        // Pause Auto-Counter
+        function pauseCounter() {
+            clearInterval(timer);
+            isRunning = false;
+        }
+        
+        // Reset Auto-Counter
+        function resetCounter() {
+            pauseCounter();
+            currentNumber = 0;
+            updateCounterDisplay();
+        }
+        
+        // Update Speed
+        function updateSpeed() {
+            delay = 101 - speedControl.value; // Invert so higher = faster
+            if (isRunning) {
+                pauseCounter();
+                startCounter();
+            }
+        }
+        
+        // Update Manual Controls
+        function updateManualColor() {
+            const r = parseInt(manualRed.value);
+            const g = parseInt(manualGreen.value);
+            const b = parseInt(manualBlue.value);
+            
+            manualRedValue.textContent = r;
+            manualGreenValue.textContent = g;
+            manualBlueValue.textContent = b;
+            
+            const hexR = r.toString(16).padStart(2, '0').toUpperCase();
+            const hexG = g.toString(16).padStart(2, '0').toUpperCase();
+            const hexB = b.toString(16).padStart(2, '0').toUpperCase();
+            
+            manualHex.textContent = `0x ${hexR} ${hexG} ${hexB}`;
+            manualColorBox.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
+        }
+        
+        // Event Listeners
+        startBtn.addEventListener('click', startCounter);
+        pauseBtn.addEventListener('click', pauseCounter);
+        resetBtn.addEventListener('click', resetCounter);
+        speedControl.addEventListener('input', updateSpeed);
+        
+        manualRed.addEventListener('input', updateManualColor);
+        manualGreen.addEventListener('input', updateManualColor);
+        manualBlue.addEventListener('input', updateManualColor);
+        
+        // Initialize
+        updateCounterDisplay();
+        updateManualColor();
+    </script>
+</body>
+</html>
